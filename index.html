@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
     <style>
-        /* styles.css */
+       /* styles.css */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f9;
@@ -84,6 +84,8 @@ button:hover {
 .output {
     margin-top: 20px;
     text-align: left;
+    display: flex;
+    flex-direction: column;
 }
 
 #json-output {
@@ -94,9 +96,15 @@ button:hover {
     white-space: pre-wrap;
     font-family: monospace;
 }
+#copy-button{
+  margin-left: auto;
+  margin-right: -1rem;
+  margin-bottom: -1rem;
+  scale: 0.7;
+}
 </style>
 <body>
-    <div class="container">
+        <div class="container">
         <h1>Regex Generator</h1>
 
         <!-- Input for the sentence -->
@@ -125,7 +133,7 @@ button:hover {
 
         <!-- Input for entities -->
         <label for="entities">Enter entities (comma-separated):</label>
-        <input type="text" id="entities" placeholder="e.g., page_identifier,field_name,new_value">
+        <input type="text" id="entities" placeholder="e.g., page_identifier,field_name,new_valude">
 
         <!-- Generate button -->
         <button onclick="generateRegex()">Generate Regex</button>
@@ -133,12 +141,13 @@ button:hover {
         <!-- Output section -->
         <div class="output">
             <h2>Output</h2>
-            <pre id="json-output"></pre>
-            <!-- Copy Output button -->
+          <!-- Copy Output button -->
             <button onclick="copyOutput()" id="copy-button">Copy Output</button>
+          <pre id="json-output"></pre>
         </div>
     </div>
 
     <script src="script.js"></script>
+
 </body>
 </html>
