@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Regex Generator</h1>
+
+        <!-- Input for the sentence -->
+        <label for="sentence">Enter a sentence with placeholders:</label>
+        <div class="button-group">
+            <button onclick="insertPlaceholder('[action]')">Insert [action]</button>
+            <button onclick="insertPlaceholder('[page]')">Insert [page]</button>
+            <button onclick="insertPlaceholder('[field]')">Insert [field]</button>
+            <button onclick="insertPlaceholder('[value]')">Insert [value]</button>
+            <button onclick="insertPlaceholder('[prep]')">Insert [prep]</button>
+        </div>
+        <input type="text" id="sentence" placeholder="e.g., Can you please [action] the [page] of my website [field] [prep] [value]">
+
+        <!-- Input for identifiers -->
+        <label for="action">Action (e.g., update|change|edit|set):</label>
+        <input type="text" id="action" placeholder="e.g., update|change|edit|set">
+
+        <label for="type">Type (e.g., hero|subheading|footer|header):</label>
+        <input type="text" id="type" placeholder="e.g., hero|subheading|footer|header">
+
+        <label for="element">Element (e.g., text|image|title|content):</label>
+        <input type="text" id="element" placeholder="e.g., text|image|title|content">
+
+        <label for="preposition">Preposition (e.g., to|as):</label>
+        <input type="text" id="preposition" placeholder="e.g., to|as">
+
+        <!-- Input for entities -->
+        <label for="entities">Enter entities (comma-separated):</label>
+        <input type="text" id="entities" placeholder="e.g., page_identifier,field_name,new_value">
+
+        <!-- Generate button -->
+        <button onclick="generateRegex()">Generate Regex</button>
+
+        <!-- Output section -->
+        <div class="output">
+            <h2>Output</h2>
+            <pre id="json-output"></pre>
+            <!-- Copy Output button -->
+            <button onclick="copyOutput()" id="copy-button">Copy Output</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
