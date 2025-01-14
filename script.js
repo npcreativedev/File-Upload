@@ -61,7 +61,7 @@ function generateRegex() {
     // Define placeholders and their corresponding regex patterns
     const placeholders = {
         "[action]": `(?:${action})`,
-        "[page]": "(\\w+.*?\\b)",
+        "[page]": "(\\w+.*?\\b),?", // Optional comma after the page identifier
         "[field]": `((?:${type})\\s+(?:${element}))`, // Double brackets for capture group
         "[prep]": `(?:${preposition})`,
         "[value]": "['\"]([^'\"]+)['\"]"
