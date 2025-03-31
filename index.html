@@ -3,11 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <title>GoFile Uploader</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #progressBar {
+      width: 100%;
+      background-color: #eee;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 10px;
+      height: 20px;
+    }
+    #progressFill {
+      height: 100%;
+      width: 0%;
+      background-color: #4caf50;
+      transition: width 0.2s ease-in-out;
+    }
+    #status, #link { margin-top: 10px; }
+  </style>
 </head>
 <body>
   <h2>Upload File to GoFile</h2>
   <input type="file" id="fileInput" />
   <button onclick="upload()">Upload</button>
+
+  <div id="progressBar"><div id="progressFill"></div></div>
   <p id="status"></p>
   <p><strong>Link:</strong> <a id="link" href="#" target="_blank"></a></p>
 
@@ -16,30 +36,50 @@
       const file = document.getElementById('fileInput').files[0];
       if (!file) return alert('Please choose a file');
 
-      document.getElementById('status').innerText = 'Uploading...';
+      document.getElementById('status').innerText = '🔄 Getting upload server...';
+      document.getElementById('link').innerText = '';
+      document.getElementById('progressFill').style.width = '0%';
 
-      // Step 1: Get the best server
-      const serverRes = await fetch('https://api.gofile.io/getServer');
-      const { data: { server } } = await serverRes.json();
+      try {
+        const serverRes = await fetch('https://api.gofile.io/getServer');
+        const { data: { server } } = await serverRes.json();
 
-      // Step 2: Upload file
-      const formData = new FormData();
-      formData.append('file', file);
+        const formData = new FormData();
+        formData.append('file', file);
 
-      const uploadRes = await fetch(`https://${server}.gofile.io/uploadFile`, {
-        method: 'POST',
-        body: formData
-      });
+        const xhr = new XMLHttpRequest();
 
-      const result = await uploadRes.json();
+        xhr.upload.addEventListener("progress", function (e) {
+          if (e.lengthComputable) {
+            const percent = (e.loaded / e.total) * 100;
+            document.getElementById('progressFill').style.width = `${percent.toFixed(1)}%`;
+            document.getElementById('status').innerText = `Uploading... ${percent.toFixed(1)}%`;
+          }
+        });
 
-      if (result.status === 'ok') {
-        const link = result.data.downloadPage;
-        document.getElementById('link').href = link;
-        document.getElementById('link').innerText = link;
-        document.getElementById('status').innerText = '✅ Uploaded successfully!';
-      } else {
-        document.getElementById('status').innerText = '❌ Upload failed.';
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4) {
+            const result = JSON.parse(xhr.responseText);
+            if (xhr.status === 200 && result.status === "ok") {
+              const link = result.data.downloadPage;
+              document.getElementById('status').innerText = '✅ Upload successful!';
+              document.getElementById('link').href = link;
+              document.getElementById('link').innerText = link;
+
+              navigator.clipboard.writeText(link).then(() => {
+                document.getElementById('status').innerText += " (🔗 Copied to clipboard)";
+              });
+            } else {
+              document.getElementById('status').innerText = '❌ Upload failed.';
+            }
+          }
+        };
+
+        xhr.open("POST", `https://${server}.gofile.io/uploadFile`);
+        xhr.send(formData);
+      } catch (error) {
+        console.error("Upload error:", error);
+        document.getElementById('status').innerText = '❌ Something went wrong.';
       }
     }
   </script>
