@@ -1,153 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Regex Generator</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>GoFile Uploader</title>
 </head>
-    <style>
-       /* styles.css */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-.container {
-    background: white;
-    padding: 10px 60px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 600px;
-    min-width: 450px;
-    text-align: center;
-}
-
-h1 {
-    margin-bottom: 20px;
-    color: #333;
-}
-
-label {
-    display: block;
-    margin-bottom: 10px;
-    font-weight: bold;
-}
-
-input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.button-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.button-group button {
-    flex: 1;
-    padding: 10px;
-    background-color: black;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.button-group button:hover {
-    background-color: gray;
-}
-
-button {
-    padding: 10px 20px;
-    background-color: black;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: gray;
-}
-
-.output {
-    margin-top: 20px;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-}
-
-#json-output {
-    background: #f8f9fa;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    white-space: pre-wrap;
-    font-family: monospace;
-}
-#copy-button{
-  margin-left: auto;
-  margin-right: -1rem;
-  margin-bottom: -1rem;
-  scale: 0.7;
-}
-</style>
 <body>
-        <div class="container">
-        <h1>Regex Generator</h1>
+  <h2>Upload File to GoFile</h2>
+  <input type="file" id="fileInput" />
+  <button onclick="upload()">Upload</button>
+  <p id="status"></p>
+  <p><strong>Link:</strong> <a id="link" href="#" target="_blank"></a></p>
 
-        <!-- Input for the sentence -->
-        <label for="sentence">Enter a sentence with placeholders:</label>
-        <div class="button-group">
-            <button onclick="insertPlaceholder('[action]')">Insert [action]</button>
-            <button onclick="insertPlaceholder('[page]')">Insert [page]</button>
-            <button onclick="insertPlaceholder('[field]')">Insert [field]</button>
-            <button onclick="insertPlaceholder('[value]')">Insert [value]</button>
-            <button onclick="insertPlaceholder('[prep]')">Insert [prep]</button>
-        </div>
-        <input type="text" id="sentence" placeholder="e.g., Can you please [action] the [page] of my website [field] [prep] [value]">
+  <script>
+    async function upload() {
+      const file = document.getElementById('fileInput').files[0];
+      if (!file) return alert('Please choose a file');
 
-        <!-- Input for identifiers -->
-        <label for="action">Action (e.g., update|change|edit|set):</label>
-        <input type="text" id="action" placeholder="e.g., update|change|edit|set">
+      document.getElementById('status').innerText = 'Uploading...';
 
-        <label for="type">Type (e.g., hero|subheading|footer|header):</label>
-        <input type="text" id="type" placeholder="e.g., hero|subheading|footer|header">
+      // Step 1: Get the best server
+      const serverRes = await fetch('https://api.gofile.io/getServer');
+      const { data: { server } } = await serverRes.json();
 
-        <label for="element">Element (e.g., text|image|title|content):</label>
-        <input type="text" id="element" placeholder="e.g., text|image|title|content">
+      // Step 2: Upload file
+      const formData = new FormData();
+      formData.append('file', file);
 
-        <label for="preposition">Preposition (e.g., to|as):</label>
-        <input type="text" id="preposition" placeholder="e.g., to|as">
+      const uploadRes = await fetch(`https://${server}.gofile.io/uploadFile`, {
+        method: 'POST',
+        body: formData
+      });
 
-        <!-- Input for entities -->
-        <label for="entities">Enter entities (comma-separated):</label>
-        <input type="text" id="entities" placeholder="e.g., page_identifier,field_name,new_valude">
+      const result = await uploadRes.json();
 
-        <!-- Generate button -->
-        <button onclick="generateRegex()">Generate Regex</button>
-
-        <!-- Output section -->
-        <div class="output">
-            <h2>Output</h2>
-          <!-- Copy Output button -->
-            <button onclick="copyOutput()" id="copy-button">Copy Output</button>
-          <pre id="json-output"></pre>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-
+      if (result.status === 'ok') {
+        const link = result.data.downloadPage;
+        document.getElementById('link').href = link;
+        document.getElementById('link').innerText = link;
+        document.getElementById('status').innerText = '✅ Uploaded successfully!';
+      } else {
+        document.getElementById('status').innerText = '❌ Upload failed.';
+      }
+    }
+  </script>
 </body>
 </html>
