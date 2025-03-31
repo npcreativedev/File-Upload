@@ -10,32 +10,33 @@ const upload = multer({ dest: "uploads/" });
 app.use(express.static("public"));
 
 app.post("/upload", upload.single("file"), async (req, res) => {
-  const localPath = req.file.path;
+  const filePath = req.file.path;
   try {
     const formData = new FormData();
-    formData.append("file", fs.createReadStream(localPath));
+    formData.append("file", fs.createReadStream(filePath));
 
-    // ✅ Upload to v2 GoFile API endpoint
-    const uploadRes = await axios.post(
+    const gofileRes = await axios.post(
       "https://api.gofile.io/v2/uploadFile",
       formData,
-      { headers: formData.getHeaders() }
+      {
+        headers: formData.getHeaders(),
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+      }
     );
 
-    fs.unlinkSync(localPath); // Clean up uploaded file
+    fs.unlinkSync(filePath); // cleanup
 
-    if (uploadRes.data.status === "ok") {
-      return res.json({
-        success: true,
-        link: uploadRes.data.data.downloadPage
-      });
+    const { data } = gofileRes;
+    if (data.status === "ok") {
+      res.json({ success: true, link: data.data.downloadPage });
     } else {
-      return res.json({ success: false, message: "Upload failed." });
+      res.json({ success: false, message: data.status });
     }
-  } catch (error) {
-    console.error("Upload exception:", error.message);
-    fs.unlinkSync(localPath);
-    return res.json({ success: false, message: error.message });
+  } catch (err) {
+    console.error("Upload error:", err.message);
+    fs.unlinkSync(filePath);
+    res.json({ success: false, message: "Upload failed. Try again." });
   }
 });
 
