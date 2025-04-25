@@ -14,7 +14,7 @@
       --light: #f8fafc;
       --gray: #94a3b8;
       --success: #10b981;
-      --error: #ef4444;
+      --error: #193592;
     }
     
     * {
@@ -331,160 +331,176 @@
   </div>
 
   <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            feather.replace();
-
-            // DOM references
-            const uploadArea = document.getElementById('uploadArea');
-            const fileInput = document.getElementById('fileInput');
-            const fileInfo = document.getElementById('fileInfo');
-            const fileName = document.getElementById('fileName');
-            const fileSize = document.getElementById('fileSize');
-            const removeFile = document.getElementById('removeFile');
-            const uploadBtn = document.getElementById('uploadBtn');
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            const status = document.getElementById('status');
-            const result = document.getElementById('result');
-            const downloadLink = document.getElementById('downloadLink');
-            const linkText = document.getElementById('linkText');
-            const copyBtn = document.getElementById('copyBtn');
-
-            // Drag and drop events
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, preventDefaults, false);
-            });
-
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
+    document.addEventListener('DOMContentLoaded', () => {
+      feather.replace();
+      
+      const uploadArea = document.getElementById('uploadArea');
+      const fileInput = document.getElementById('fileInput');
+      const fileInfo = document.getElementById('fileInfo');
+      const fileName = document.getElementById('fileName');
+      const fileSize = document.getElementById('fileSize');
+      const removeFile = document.getElementById('removeFile');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const progressContainer = document.getElementById('progressContainer');
+      const progressBar = document.getElementById('progressBar');
+      const status = document.getElementById('status');
+      const result = document.getElementById('result');
+      const downloadLink = document.getElementById('downloadLink');
+      const linkText = document.getElementById('linkText');
+      const copyBtn = document.getElementById('copyBtn');
+      
+      // Handle drag and drop
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+      });
+      
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, highlight, false);
+      });
+      
+      ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, unhighlight, false);
+      });
+      
+      function highlight() {
+        uploadArea.classList.add('active');
+      }
+      
+      function unhighlight() {
+        uploadArea.classList.remove('active');
+      }
+      
+      uploadArea.addEventListener('drop', handleDrop, false);
+      
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length) {
+          fileInput.files = files;
+          handleFiles(files);
+        }
+      }
+      
+      uploadArea.addEventListener('click', () => {
+        fileInput.click();
+      });
+      
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+          handleFiles(fileInput.files);
+        }
+      });
+      
+      removeFile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.value = '';
+        fileInfo.style.display = 'none';
+        uploadBtn.disabled = true;
+      });
+      
+      function handleFiles(files) {
+        const file = files[0];
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        fileInfo.style.display = 'flex';
+        uploadBtn.disabled = false;
+      }
+      
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+      
+      document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const file = fileInput.files[0];
+        if (!file) return;
+        
+        const formData = new FormData();
+        formData.append('data', file);
+        
+        status.textContent = 'Preparing upload...';
+        status.className = 'status';
+        result.style.display = 'none';
+        progressContainer.style.display = 'block';
+        uploadBtn.disabled = true;
+        
+        try {
+          const xhr = new XMLHttpRequest();
+          
+          xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+              const percentComplete = (e.loaded / e.total) * 100;
+              progressBar.style.width = percentComplete + '%';
             }
-
-            ['dragenter', 'dragover'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, () => uploadArea.classList.add('active'), false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('active'), false);
-            });
-
-            uploadArea.addEventListener('drop', handleDrop, false);
-
-            function handleDrop(e) {
-                const files = e.dataTransfer.files;
-                if (files.length) {
-                    fileInput.files = files;
-                    handleFiles(files);
-                }
+          });
+          
+          xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+              const response = JSON.parse(xhr.responseText);
+              handleSuccess(response);
+            } else {
+              handleError('Upload failed. Please try again.');
             }
-
-            uploadArea.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', () => {
-                if (fileInput.files.length) {
-                    handleFiles(fileInput.files);
-                }
-            });
-
-            removeFile.addEventListener('click', (e) => {
-                e.stopPropagation();
-                fileInput.value = '';
-                fileInfo.style.display = 'none';
-                uploadBtn.disabled = true;
-            });
-
-            function handleFiles(files) {
-                const file = files[0];
-                fileName.textContent = file.name;
-                fileSize.textContent = formatFileSize(file.size);
-                fileInfo.style.display = 'flex';
-                uploadBtn.disabled = false;
-            }
-
-            function formatFileSize(bytes) {
-                if (bytes === 0) return '0 Bytes';
-                const k = 1024;
-                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-            }
-
-            document.getElementById('uploadForm').addEventListener('submit', async function (e) {
-                e.preventDefault();
-
-                const file = fileInput.files[0];
-                if (!file) return;
-
-                const formData = new FormData();
-                formData.append('data', file);
-
-                status.textContent = 'Preparing upload...';
-                status.className = 'status';
-                result.style.display = 'none';
-                progressContainer.style.display = 'block';
-                uploadBtn.disabled = true;
-
-                const controller = new AbortController();
-                const timeout = setTimeout(() => {
-                    controller.abort();
-                }, 5 * 60 * 1000); // 5 minutes
-
-                try {
-                    const res = await fetch('https://n8n.npcreatives.com/webhook/uploadMedia', {
-                        method: 'POST',
-                        body: formData,
-                        signal: controller.signal
-                    });
-
-                    clearTimeout(timeout);
-
-                    if (!res.ok) throw new Error('Upload failed. Please try again.');
-                    const response = await res.json();
-                    handleSuccess(response);
-
-                } catch (err) {
-                    console.error(err);
-                    handleError(err.name === 'AbortError'
-                        ? 'Upload timeout. Please try a smaller file or faster connection.'
-                        : 'Network error. Please check your connection.');
-                }
-            });
-
-            function handleSuccess(response) {
-                progressContainer.style.display = 'none';
-
-                if (response.directLink) {
-                    status.textContent = 'Upload completed successfully!';
-                    status.className = 'status success';
-
-                    downloadLink.href = response.directLink;
-                    linkText.textContent = response.directLink;
-                    result.style.display = 'block';
-                } else {
-                    handleError('Upload completed but no link was returned.');
-                }
-            }
-
-            function handleError(message) {
-                progressContainer.style.display = 'none';
-                status.textContent = message;
-                status.className = 'status error';
-                uploadBtn.disabled = false;
-            }
-
-            copyBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                navigator.clipboard.writeText(downloadLink.href).then(() => {
-                    const originalText = copyBtn.textContent;
-                    copyBtn.textContent = 'Copied!';
-                    setTimeout(() => {
-                        copyBtn.textContent = originalText;
-                    }, 2000);
-                });
-            });
+          });
+          
+          xhr.addEventListener('error', () => {
+            handleError('Network error. Please check your connection.');
+          });
+          
+          xhr.open('POST', 'https://n8n.npcreatives.com/webhook/uploadMedia', true);
+          xhr.send(formData);
+          
+        } catch (err) {
+          console.error(err);
+          handleError('An unexpected error occurred.');
+        }
+      });
+      
+      function handleSuccess(response) {
+        progressContainer.style.display = 'none';
+        
+        if (response.directLink) {
+          status.textContent = 'Upload completed successfully!';
+          status.className = 'status success';
+          
+          downloadLink.href = response.directLink;
+          linkText.textContent = response.directLink;
+          result.style.display = 'block';
+        } else {
+          handleError('Upload completed but no link was returned. Please wait a few minutes and check the group');
+        }
+      }
+      
+      function handleError(message) {
+        progressContainer.style.display = 'none';
+        status.textContent = message;
+        status.className = 'status error';
+        uploadBtn.disabled = false;
+      }
+      
+      copyBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        navigator.clipboard.writeText(downloadLink.href).then(() => {
+          const originalText = copyBtn.textContent;
+          copyBtn.textContent = 'Copied!';
+          setTimeout(() => {
+            copyBtn.textContent = originalText;
+          }, 2000);
         });
-    </script>
-
+      });
+    });
+  </script>
 </body>
 </html>
