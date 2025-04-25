@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloudDrop | Secure File Upload</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #e0e7ff;
+      --dark: #1e293b;
+      --light: #f8fafc;
+      --gray: #94a3b8;
+      --success: #10b981;
+      --error: #ef4444;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 500px;
+      padding: 40px;
+      transition: all 0.3s ease;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+    
+    .header p {
+      color: var(--gray);
+      font-size: 14px;
+    }
+    
+    .upload-area {
+      border: 2px dashed var(--gray);
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .upload-area:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    
+    .upload-area.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    
+    .upload-area i {
+      font-size: 48px;
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
+    
+    .upload-area h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    
+    .upload-area p {
+      color: var(--gray);
+      font-size: 14px;
+    }
+    
+    #fileInput {
+      display: none;
+    }
+    
+    .file-info {
+      display: none;
+      align-items: center;
+      background: var(--primary-light);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 16px;
+    }
+    
+    .file-info i {
+      margin-right: 12px;
+      color: var(--primary);
+    }
+    
+    .file-details {
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .file-name {
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .file-size {
+      font-size: 12px;
+      color: var(--gray);
+    }
+    
+    .remove-file {
+      color: var(--gray);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    
+    .remove-file:hover {
+      color: var(--error);
+    }
+    
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .btn:hover {
+      background: #3a56d4;
+      transform: translateY(-2px);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .btn i {
+      margin-right: 8px;
+    }
+    
+    .btn:disabled {
+      background: var(--gray);
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .progress-container {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      margin: 20px 0;
+      overflow: hidden;
+      display: none;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: var(--primary);
+      width: 0;
+      transition: width 0.3s ease;
+    }
+    
+    .status {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 14px;
+      min-height: 20px;
+    }
+    
+    .success {
+      color: var(--success);
+    }
+    
+    .error {
+      color: var(--error);
+    }
+    
+    .result {
+      display: none;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+    
+    .result-title {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      color: var(--success);
+    }
+    
+    .result-title i {
+      margin-right: 8px;
+    }
+    
+    .download-link {
+      display: flex;
+      align-items: center;
+      background: white;
+      border: 1px solid #d1fae5;
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 14px;
+      overflow: hidden;
+    }
+    
+    .download-link:hover {
+      background: #ecfdf5;
+    }
+    
+    .download-link i {
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    
+    .link-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .copy-btn {
+      margin-left: auto;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .copy-btn:hover {
+      background: #3a56d4;
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>GetURL</h1>
+      <p>Upload your files securely to the cloud</p>
+    </div>
+    
+    <form id="uploadForm">
+      <div class="upload-area" id="uploadArea">
+        <i data-feather="upload-cloud"></i>
+        <h3>Drag & drop your file here</h3>
+        <p>or click to browse files</p>
+        <input type="file" name="data" id="fileInput" required />
+      </div>
+      
+      <div class="file-info" id="fileInfo">
+        <i data-feather="file"></i>
+        <div class="file-details">
+          <div class="file-name" id="fileName"></div>
+          <div class="file-size" id="fileSize"></div>
+        </div>
+        <i class="remove-file" data-feather="x" id="removeFile"></i>
+      </div>
+      
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      
+      <button type="submit" class="btn" id="uploadBtn" disabled>
+        <i data-feather="upload"></i>
+        <span>Upload File</span>
+      </button>
+    </form>
+    
+    <div class="status" id="status"></div>
+    
+    <div class="result" id="result">
+      <div class="result-title">
+        <i data-feather="check-circle"></i>
+        <span>Upload successful!</span>
+      </div>
+      <a href="#" class="download-link" id="downloadLink" target="_blank">
+        <i data-feather="link"></i>
+        <span class="link-text" id="linkText"></span>
+        <button class="copy-btn" id="copyBtn">Copy</button>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      feather.replace();
+      
+      const uploadArea = document.getElementById('uploadArea');
+      const fileInput = document.getElementById('fileInput');
+      const fileInfo = document.getElementById('fileInfo');
+      const fileName = document.getElementById('fileName');
+      const fileSize = document.getElementById('fileSize');
+      const removeFile = document.getElementById('removeFile');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const progressContainer = document.getElementById('progressContainer');
+      const progressBar = document.getElementById('progressBar');
+      const status = document.getElementById('status');
+      const result = document.getElementById('result');
+      const downloadLink = document.getElementById('downloadLink');
+      const linkText = document.getElementById('linkText');
+      const copyBtn = document.getElementById('copyBtn');
+      
+      // Handle drag and drop
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+      });
+      
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, highlight, false);
+      });
+      
+      ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, unhighlight, false);
+      });
+      
+      function highlight() {
+        uploadArea.classList.add('active');
+      }
+      
+      function unhighlight() {
+        uploadArea.classList.remove('active');
+      }
+      
+      uploadArea.addEventListener('drop', handleDrop, false);
+      
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length) {
+          fileInput.files = files;
+          handleFiles(files);
+        }
+      }
+      
+      uploadArea.addEventListener('click', () => {
+        fileInput.click();
+      });
+      
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+          handleFiles(fileInput.files);
+        }
+      });
+      
+      removeFile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.value = '';
+        fileInfo.style.display = 'none';
+        uploadBtn.disabled = true;
+      });
+      
+      function handleFiles(files) {
+        const file = files[0];
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        fileInfo.style.display = 'flex';
+        uploadBtn.disabled = false;
+      }
+      
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+      
+      document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const file = fileInput.files[0];
+        if (!file) return;
+        
+        const formData = new FormData();
+        formData.append('data', file);
+        
+        status.textContent = 'Preparing upload...';
+        status.className = 'status';
+        result.style.display = 'none';
+        progressContainer.style.display = 'block';
+        uploadBtn.disabled = true;
+        
+        try {
+          const xhr = new XMLHttpRequest();
+          
+          xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+              const percentComplete = (e.loaded / e.total) * 100;
+              progressBar.style.width = percentComplete + '%';
+            }
+          });
+          
+          xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+              const response = JSON.parse(xhr.responseText);
+              handleSuccess(response);
+            } else {
+              handleError('Upload failed. Please try again.');
+            }
+          });
+          
+          xhr.addEventListener('error', () => {
+            handleError('Network error. Please check your connection.');
+          });
+          
+          xhr.open('POST', 'https://n8n.npcreatives.com/webhook-test/uploadMedia', true);
+          xhr.send(formData);
+          
+        } catch (err) {
+          console.error(err);
+          handleError('An unexpected error occurred.');
+        }
+      });
+      
+      function handleSuccess(response) {
+        progressContainer.style.display = 'none';
+        
+        if (response.directLink) {
+          status.textContent = 'Upload completed successfully!';
+          status.className = 'status success';
+          
+          downloadLink.href = response.directLink;
+          linkText.textContent = response.directLink;
+          result.style.display = 'block';
+        } else {
+          handleError('Upload completed but no link was returned.');
+        }
+      }
+      
+      function handleError(message) {
+        progressContainer.style.display = 'none';
+        status.textContent = message;
+        status.className = 'status error';
+        uploadBtn.disabled = false;
+      }
+      
+      copyBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        navigator.clipboard.writeText(downloadLink.href).then(() => {
+          const originalText = copyBtn.textContent;
+          copyBtn.textContent = 'Copied!';
+          setTimeout(() => {
+            copyBtn.textContent = originalText;
+          }, 2000);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
