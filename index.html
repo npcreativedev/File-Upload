@@ -542,316 +542,266 @@
     </div>
   </div>
 
-  <!-- Include Dropbox SDK -->
-<script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  feather.replace();
-
-  const PHP_UPLOAD_URL = 'https://npcreatives.com/dropbox-url-upload.php';
-  const MAX_PHP_UPLOAD_SIZE = 10 * 1024 * 1024; // 10MB
-  const DROPBOX_ACCESS_TOKEN = 'sl.u.AFtvrhdLqbcg30JDa0qkv72yZ69HPEnWcI-UgW4XHCmqbFCETwzMZitD-OIZiwy3WieuGIJWwirG_fBlWpdoRn3tcK9XI6cUqeAwaDsNxUWp3NpzLIwN9dA6Dc4PuoEk-EZaBKlhrjZYnRN9m4z51chARMZBbB3lt-OjnbBGqQPvwCbA7bnqC49WAEdVIGburrqHjswv53Rr5PbnCSghqk7-E3J1xd4FaYt59u1pRSJDkKY-MqWlcWpQb76WiUn2IrFrfbai_gaCr8Wu_oqqx0mx0zsuLMphIF8qaouLe-OCLMVqKu_0ogt9kntND6Bw6gmWkj6Ir0tjNfSPAgXv9B4DGfwQ96DT4ZbwKEcLhSh24traNF3VcEKUbv92QrNtYxLeI86QehrzApX03D9qXn22EbShHk-d_HD7oPsO0gjoCaXuOcbXMtYuGJZFe6xB1lfWM_KALupzOns_u_9efRxTdBcQPYb6zoRG3B_QnEIzSB_xjoCH9yvfP04X2Rq811wf6fQw-RAGQk8J-HEvNdO9ufBOYtBKJD-FQosf7KBedOayRfKtOi_6qepwW4Ca2ywuccz9OREsEsUpM3Q_kgGcQgXkhJgBvGdtv6kXulIFhRqrOynPmqunSsLthDuMDbUTd4wSJCG2sP7PuV654Rim1RYg_bzf1DqRD6I8WRAUBvtSA92qq45_YN0fNBB8PX3t5C0Vrp0wCtyXBGgDxlQ1feFAHjx-W14NQY528QL-fmGqN4pSs-WY-FyJyRxd7FoIC_MMoO9170epLjigtND06AKYojhw03tPBatCEYMgaFJykWAy3p1uDn8P3rnsYnF0dZluX0RIYbx6TInWYQSA8M3peqkf1KwvfbGOxQm85-Cj0ecFybHf7FPPIKuWKWpAbsZ1tHkkrMLSYHoPxYcrH4BSlLVcJTX4UAynrClRU6R4v5tJFbUMWdrO0rHM5oVog62_5kYnZt52z7MyuhZlnwdlTvNWtLweFzdpenXfitxgxzYZU3MsUzlRQaq5iWU1CIGL9DNNkDhG1DX-sEUwGMTX7C2yKQ1HxNbO9JB9CNP1Yq_j_STBW3RyQR0Lxe45R_lEf0YVkWHCxu_STXW_gpROCHuoRJlL1teQ8px27CmFkVt0qWYkO3iGi5g_9iXWHmb_UDlu5E5rZdGRe4jDU3mWznq4yXCdnJEljPldkUuAq83CF_xgUJnugNaB0imryiy58NVrXAEGvMej7r-uF01sk9sJ4uQtWbzJvj6XdBK4jpBIi5SdIeNXeOQzT484EhRNV5dPgYURpF2W8jUY7KnWg5nkygBaU1IAwHFd60DRPbWbp7WJQCEN2NKWg45HGN62IJ0-QrSm5fNx5Wd9BYuL_EZ3YCpkZAxf7nTfGLJK7zsJI_K9mDTbug6_KlPIWiFWyiTIYN9cKAbjR66aUGK8uaptX1ldp4tBTbpvLQ'; // shortened for brevity
-
-
-  const uploadArea = document.getElementById('uploadArea');
-  const fileInput = document.getElementById('fileInput');
-  const fileList = document.getElementById('fileList');
-  const emptyState = document.getElementById('emptyState');
-  const uploadBtn = document.getElementById('uploadBtn');
-  const progressContainer = document.getElementById('progressContainer');
-  const progressBar = document.getElementById('progressBar');
-  const status = document.getElementById('status');
-  const resultContainer = document.getElementById('resultContainer');
-  const resultList = document.getElementById('resultList');
-  const copyAllBtn = document.getElementById('copyAllBtn');
-
-  emptyState.style.display = 'block';
-
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
-    uploadArea.addEventListener(event, e => {
-      e.preventDefault();
-      e.stopPropagation();
-    });
-  });
-
-  ['dragenter', 'dragover'].forEach(event => {
-    uploadArea.addEventListener(event, () => uploadArea.classList.add('active'));
-  });
-
-  ['dragleave', 'drop'].forEach(event => {
-    uploadArea.addEventListener(event, () => uploadArea.classList.remove('active'));
-  });
-
-  uploadArea.addEventListener('click', () => fileInput.click());
-
-  uploadArea.addEventListener('drop', e => {
-    fileInput.files = e.dataTransfer.files;
-    handleFiles(fileInput.files);
-  });
-
-  fileInput.addEventListener('change', () => {
-    handleFiles(fileInput.files);
-  });
-
-  function createFileInfoElement(file, index) {
-    const fileElement = document.createElement('div');
-    fileElement.className = 'file-info';
-    fileElement.innerHTML = `
-      <i data-feather="file"></i>
-      <div class="file-details">
-        <div class="file-name">${file.name}</div>
-        <div class="file-size">
-          <span>${formatFileSize(file.size)}</span>
-          ${file.type ? `<span>• ${capitalize(file.type.split('/')[0])}</span>` : ''}
-        </div>
-        <input type="text" class="file-id-input" placeholder="Add custom ID (optional)" maxlength="20">
-      </div>
-      <i class="remove-file" data-feather="x" data-index="${index}"></i>
-    `;
-    return fileElement;
-  }
-
-  function handleFiles(files) {
-    if (!files.length) {
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      feather.replace();
+    
+      const CLOUD_NAME = 'dg26pbne1';
+      const UPLOAD_PRESET = 'geturl_uploads';
+    
+      const uploadArea = document.getElementById('uploadArea');
+      const fileInput = document.getElementById('fileInput');
+      const fileList = document.getElementById('fileList');
+      const emptyState = document.getElementById('emptyState');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const progressContainer = document.getElementById('progressContainer');
+      const progressBar = document.getElementById('progressBar');
+      const status = document.getElementById('status');
+      const resultContainer = document.getElementById('resultContainer');
+      const resultList = document.getElementById('resultList');
+      const copyAllBtn = document.getElementById('copyAllBtn');
+    
       emptyState.style.display = 'block';
-      uploadBtn.disabled = true;
-      return;
-    }
-
-    emptyState.style.display = 'none';
-    fileList.innerHTML = '';
-
-    Array.from(files).forEach((file, index) => {
-      const fileElement = createFileInfoElement(file, index);
-      fileList.appendChild(fileElement);
-    });
-
-    addRemoveListeners();
-    uploadBtn.disabled = false;
-    feather.replace();
-  }
-
-  function addRemoveListeners() {
-    fileList.querySelectorAll('.remove-file').forEach(removeBtn => {
-      removeBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        const index = parseInt(removeBtn.getAttribute('data-index'));
-        removeFileAtIndex(index);
+    
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
+        uploadArea.addEventListener(event, e => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
       });
-    });
-  }
-
-  function removeFileAtIndex(index) {
-    const dt = new DataTransfer();
-    const files = Array.from(fileInput.files);
-
-    files.forEach((file, i) => {
-      if (i !== index) dt.items.add(file);
-    });
-
-    fileInput.files = dt.files;
-    handleFiles(fileInput.files);
-  }
-
-  function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
-
-  function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-
-  document.getElementById('uploadForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const files = fileInput.files;
-    if (!files.length) return;
-
-    const fileElements = fileList.querySelectorAll('.file-info');
-    const formData = new FormData();
-    const largeFiles = [];
-    const smallFiles = [];
-
-    Array.from(files).forEach((file, idx) => {
-      const customId = fileElements[idx].querySelector('.file-id-input').value || '';
-
-      if (file.size > MAX_PHP_UPLOAD_SIZE) {
-        largeFiles.push({ file, customId });
-      } else {
-        smallFiles.push({ file, customId });
-      }
-    });
-
-    showUploadingState();
-
-    const dropboxResults = [];
-    for (let { file, customId } of largeFiles) {
-      try {
-        const result = await uploadLargeFileToDropbox(file, customId);
-        dropboxResults.push(result);
-      } catch (error) {
-        showError(`Dropbox upload failed: ${error.message}`);
-        return;
-      }
-    }
-
-    let phpResults = [];
-    if (smallFiles.length > 0) {
-      smallFiles.forEach(({ file, customId }) => {
-        formData.append('data[]', file);
-        formData.append('id[]', customId);
+    
+      ['dragenter', 'dragover'].forEach(event => {
+        uploadArea.addEventListener(event, () => uploadArea.classList.add('active'));
       });
-
-      try {
-        phpResults = await uploadViaPHP(formData);
-      } catch (error) {
-        showError('PHP upload failed.');
-        return;
+    
+      ['dragleave', 'drop'].forEach(event => {
+        uploadArea.addEventListener(event, () => uploadArea.classList.remove('active'));
+      });
+    
+      uploadArea.addEventListener('click', () => fileInput.click());
+    
+      uploadArea.addEventListener('drop', e => {
+        fileInput.files = e.dataTransfer.files;
+        handleFiles(fileInput.files);
+      });
+    
+      fileInput.addEventListener('change', () => {
+        handleFiles(fileInput.files);
+      });
+    
+      function createFileInfoElement(file, index) {
+        const fileElement = document.createElement('div');
+        fileElement.className = 'file-info';
+        fileElement.innerHTML = `
+          <i data-feather="file"></i>
+          <div class="file-details">
+            <div class="file-name">${file.name}</div>
+            <div class="file-size">
+              <span>${formatFileSize(file.size)}</span>
+              ${file.type ? `<span>• ${capitalize(file.type.split('/')[0])}</span>` : ''}
+            </div>
+            <input type="text" class="file-id-input" placeholder="Add custom ID (optional)" maxlength="20">
+          </div>
+          <i class="remove-file" data-feather="x" data-index="${index}"></i>
+        `;
+        return fileElement;
       }
-    }
-
-    showResult([...dropboxResults, ...phpResults]);
-  });
-
-  async function uploadLargeFileToDropbox(file, customId) {
-  const dbx = new Dropbox.Dropbox({ accessToken: DROPBOX_ACCESS_TOKEN, fetch: window.fetch.bind(window) });
-  const fileName = sanitizeFilename(file.name);
-  const uploadPath = `/uploads/${fileName}`;
-
-  const result = await dbx.filesUpload({
-    path: uploadPath,
-    contents: file,
-    mode: 'add',
-    autorename: true
-  });
-
-  const sharedLink = await dbx.sharingCreateSharedLinkWithSettings({
-    path: result.result.path_display
-  });
-
-  const directLink = sharedLink.result.url
-    .replace('www.dropbox.com', 'dl.dropboxusercontent.com')
-    .replace('?dl=0', '');
-
-  return { id: customId, directLink };
-}
-
-
-  async function uploadViaPHP(formData) {
-    const response = await fetch(PHP_UPLOAD_URL, {
-      method: 'POST',
-      body: formData
-    });
-
-    if (!response.ok) {
-      throw new Error('Server error');
-    }
-
-    return await response.json(); // Expected format: [{ directLink, id }, ...]
-  }
-
-  function sanitizeFilename(name) {
-    return name.replace(/[^A-Za-z0-9_\.-]/g, '_');
-  }
-
-  function showUploadingState() {
-    status.innerHTML = `<i data-feather="loader" class="spin"></i> Uploading files...`;
-    status.className = 'status';
-    resultList.innerHTML = '';
-    resultContainer.style.display = 'none';
-    progressBar.style.width = '0%';
-    progressContainer.style.display = 'block';
-    uploadBtn.disabled = true;
-    uploadBtn.innerHTML = `<i data-feather="loader" class="spin"></i> Uploading...`;
-
-    const spinIcons = document.querySelectorAll('.spin');
-    spinIcons.forEach(icon => {
-      icon.style.animation = 'spin 1s linear infinite';
-    });
-  }
-
-  function showResult(response) {
-    progressContainer.style.display = 'none';
-    resultContainer.style.display = 'block';
-    status.innerHTML = `<i data-feather="check-circle"></i> Upload completed successfully!`;
-    status.className = 'status success';
-    uploadBtn.disabled = false;
-    uploadBtn.innerHTML = `<i data-feather="upload"></i> Upload Files`;
-
-    resultList.innerHTML = '';
-    response.forEach(item => {
-      const resultItem = document.createElement('div');
-      resultItem.className = 'result-item';
-
-      resultItem.innerHTML = `
-        <a href="${item.directLink}" target="_blank" class="download-link">
-          <i data-feather="link"></i>
-          <span class="link-text">${item.directLink}</span>
-          ${item.id ? `<span class="file-id-badge">${item.id}</span>` : ''}
-          <button class="copy-btn" data-link="${item.directLink}">
-            <i data-feather="copy"></i> Copy
-          </button>
-        </a>
-      `;
-
-      resultItem.querySelector('.copy-btn').addEventListener('click', e => {
+    
+      function handleFiles(files) {
+        if (!files.length) {
+          emptyState.style.display = 'block';
+          uploadBtn.disabled = true;
+          return;
+        }
+    
+        emptyState.style.display = 'none';
+        fileList.innerHTML = '';
+    
+        Array.from(files).forEach((file, index) => {
+          const fileElement = createFileInfoElement(file, index);
+          fileList.appendChild(fileElement);
+        });
+    
+        addRemoveListeners();
+        uploadBtn.disabled = false;
+        feather.replace();
+      }
+    
+      function addRemoveListeners() {
+        fileList.querySelectorAll('.remove-file').forEach(removeBtn => {
+          removeBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            const index = parseInt(removeBtn.getAttribute('data-index'));
+            removeFileAtIndex(index);
+          });
+        });
+      }
+    
+      function removeFileAtIndex(index) {
+        const dt = new DataTransfer();
+        const files = Array.from(fileInput.files);
+    
+        files.forEach((file, i) => {
+          if (i !== index) dt.items.add(file);
+        });
+    
+        fileInput.files = dt.files;
+        handleFiles(fileInput.files);
+      }
+    
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+    
+      function capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      }
+    
+      document.getElementById('uploadForm').addEventListener('submit', async function (e) {
         e.preventDefault();
-        copyToClipboard(item.directLink, e.currentTarget);
+    
+        const files = fileInput.files;
+        if (!files.length) return;
+    
+        const fileElements = fileList.querySelectorAll('.file-info');
+        showUploadingState();
+    
+        const uploadResults = [];
+    
+        for (let idx = 0; idx < files.length; idx++) {
+          const file = files[idx];
+          const customId = fileElements[idx].querySelector('.file-id-input').value || '';
+    
+          try {
+            const result = await uploadToCloudinary(file, customId);
+            uploadResults.push(result);
+          } catch (error) {
+            showError(`Upload failed: ${error.message}`);
+            return;
+          }
+        }
+    
+        showResult(uploadResults);
       });
-
-      resultList.appendChild(resultItem);
-    });
-
-    feather.replace();
-  }
-
-  function showError(message, type = 'error') {
-    progressContainer.style.display = 'none';
-    status.innerHTML = `<i data-feather="${type === 'warning' ? 'alert-triangle' : 'x-circle'}"></i> ${message}`;
-    status.className = `status ${type}`;
-    uploadBtn.disabled = false;
-    uploadBtn.innerHTML = `<i data-feather="upload"></i> Upload Files`;
-    feather.replace();
-  }
-
-  function copyToClipboard(text, btn = null) {
-    navigator.clipboard.writeText(text).then(() => {
-      if (btn) {
-        const span = btn.querySelector('span') || btn;
-        span.textContent = 'Copied!';
-        btn.style.background = 'var(--success)';
-        setTimeout(() => {
-          span.textContent = 'Copy';
-          btn.style.background = 'var(--primary)';
-        }, 2000);
+    
+      async function uploadToCloudinary(file, customId) {
+        const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+    
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', UPLOAD_PRESET);
+    
+        const response = await fetch(url, {
+          method: 'POST',
+          body: formData
+        });
+    
+        if (!response.ok) throw new Error('Cloudinary upload failed');
+    
+        const data = await response.json();
+    
+        return {
+          id: customId,
+          directLink: data.secure_url
+        };
       }
-    }).catch(err => {
-      console.error('Failed to copy', err);
+    
+      function showUploadingState() {
+        status.innerHTML = `<i data-feather="loader" class="spin"></i> Uploading files...`;
+        status.className = 'status';
+        resultList.innerHTML = '';
+        resultContainer.style.display = 'none';
+        progressBar.style.width = '0%';
+        progressContainer.style.display = 'block';
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = `<i data-feather="loader" class="spin"></i> Uploading...`;
+    
+        const spinIcons = document.querySelectorAll('.spin');
+        spinIcons.forEach(icon => {
+          icon.style.animation = 'spin 1s linear infinite';
+        });
+      }
+    
+      function showResult(response) {
+        progressContainer.style.display = 'none';
+        resultContainer.style.display = 'block';
+        status.innerHTML = `<i data-feather="check-circle"></i> Upload completed successfully!`;
+        status.className = 'status success';
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = `<i data-feather="upload"></i> Upload Files`;
+    
+        resultList.innerHTML = '';
+        response.forEach(item => {
+          const resultItem = document.createElement('div');
+          resultItem.className = 'result-item';
+    
+          resultItem.innerHTML = `
+            <a href="${item.directLink}" target="_blank" class="download-link">
+              <i data-feather="link"></i>
+              <span class="link-text">${item.directLink}</span>
+              ${item.id ? `<span class="file-id-badge">${item.id}</span>` : ''}
+              <button class="copy-btn" data-link="${item.directLink}">
+                <i data-feather="copy"></i> Copy
+              </button>
+            </a>
+          `;
+    
+          resultItem.querySelector('.copy-btn').addEventListener('click', e => {
+            e.preventDefault();
+            copyToClipboard(item.directLink, e.currentTarget);
+          });
+    
+          resultList.appendChild(resultItem);
+        });
+    
+        feather.replace();
+      }
+    
+      function showError(message, type = 'error') {
+        progressContainer.style.display = 'none';
+        status.innerHTML = `<i data-feather="${type === 'warning' ? 'alert-triangle' : 'x-circle'}"></i> ${message}`;
+        status.className = `status ${type}`;
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = `<i data-feather="upload"></i> Upload Files`;
+        feather.replace();
+      }
+    
+      function copyToClipboard(text, btn = null) {
+        navigator.clipboard.writeText(text).then(() => {
+          if (btn) {
+            const span = btn.querySelector('span') || btn;
+            span.textContent = 'Copied!';
+            btn.style.background = 'var(--success)';
+            setTimeout(() => {
+              span.textContent = 'Copy';
+              btn.style.background = 'var(--primary)';
+            }, 2000);
+          }
+        }).catch(err => {
+          console.error('Failed to copy', err);
+        });
+      }
+    
+      copyAllBtn.addEventListener('click', e => {
+        e.preventDefault();
+        const links = Array.from(document.querySelectorAll('.link-text')).map(el => el.textContent).join('\n');
+        copyToClipboard(links);
+      });
+    
+      const style = document.createElement('style');
+      style.innerHTML = `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
     });
-  }
-
-  copyAllBtn.addEventListener('click', e => {
-    e.preventDefault();
-    const links = Array.from(document.querySelectorAll('.link-text')).map(el => el.textContent).join('\n');
-    copyToClipboard(links);
-  });
-
-  // Spin animation
-  const style = document.createElement('style');
-  style.innerHTML = `
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  `;
-  document.head.appendChild(style);
-});
-</script>
+    </script>    
 
 </body>
 </html>
