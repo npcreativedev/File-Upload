@@ -854,15 +854,17 @@
       })
         .then(res => {
           if (!res.ok) throw new Error('Airtable update failed');
-          return res.json();
+          return res.text(); // get raw text
         })
-        .then(data => {
-          alert(`Airtable updated: ${data.updated} updated, ${data.skipped} skipped, ${data.failed} failed.`);
+        .then(text => {
+          const data = text ? JSON.parse(text) : {};
+          alert(`Airtable updated: ${data.updated ?? 0} updated, ${data.skipped ?? 0} skipped, ${data.failed ?? 0} failed.`);
         })
         .catch(err => {
           console.error(err);
           alert('Error updating Airtable. See console.');
         });
+
     });
 
   </script>
