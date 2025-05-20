@@ -835,17 +835,17 @@
         return;
       }
 
-      const files = Array.from(resultItems).map(item => {
-        return {
-          id: item.querySelector('.file-id-badge')?.textContent?.trim(),
-          url: item.querySelector('.link-text')?.textContent?.trim()
-        };
-      }).filter(f => f.id && f.url);
+      const files = Array.from(resultItems).map(item => ({
+        id: item.querySelector('.file-id-badge')?.textContent?.trim(),
+        url: item.querySelector('.link-text')?.textContent?.trim()
+      })).filter(f => f.id && f.url);
 
       if (!files.length) {
         alert('No valid files with IDs found.');
         return;
       }
+
+      console.log('Sending to Airtable:', { tableId, files });
 
       fetch('https://file-upload-t71w.onrender.com/update-airtable', {
         method: 'POST',
@@ -854,7 +854,7 @@
       })
         .then(res => {
           if (!res.ok) throw new Error('Airtable update failed');
-          return res.text(); // get raw text
+          return res.text();
         })
         .then(text => {
           const data = text ? JSON.parse(text) : {};
@@ -864,7 +864,11 @@
           console.error(err);
           alert('Error updating Airtable. See console.');
         });
+    });
 
+    copyAllBtn.addEventListener('click', () => {
+      const links = Array.from(document.querySelectorAll('.link-text')).map(el => el.textContent).join('\n');
+      navigator.clipboard.writeText(links);
     });
 
   </script>
