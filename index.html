@@ -993,7 +993,7 @@
           if (!response.ok) throw new Error('Airtable update failed');
 
           const data = await response.json();
-          showError(`Sent to Airtable: ${data.updated ?? 0} updated, ${data.skipped ?? 0} skipped`, 'success');
+          showError(`Sent to Calendar: ${data.updated ?? 0} updated, ${data.skipped ?? 0} skipped`, 'success');
         } catch (err) {
           console.error(err);
           showError('Error updating Airtable. See console.', 'error');
