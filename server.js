@@ -22,60 +22,66 @@ app.post('/update-airtable', async (req, res) => {
 
     try {
         for (const file of files) {
-            console.log(`🔍 Searching for record with ID="${file.id}" in table "${tableId}"`);
-
+            console.log(`🔍 Checking Airtable for ID="${file.id}" in table "${tableId}"`);
+          
             try {
-                const filterUrl = `https://api.airtable.com/v0/${BASE_ID}/${tableId}?filterByFormula=${encodeURIComponent(`VALUE({ID})=VALUE("${file.id}")`)}`;
-                const findRes = await fetch(filterUrl, {
-                    headers: {
-                        Authorization: `Bearer ${AIRTABLE_TOKEN}`
-                    }
-                });
-
-                const findText = await findRes.text();
-                console.log(`🧪 Raw Airtable response for ID="${file.id}":\n${findText}`);
-                let findData;
-                try {
-                    findData = JSON.parse(findText);
-                } catch (e) {
-                    console.error("❌ Failed to parse Airtable response JSON:", e);
-                    failed++;
-                    continue;
+              const filterUrl = `https://api.airtable.com/v0/${BASE_ID}/${tableId}?filterByFormula=${encodeURIComponent(`VALUE({ID})=VALUE("${file.id}")`)}`;
+          
+              const findRes = await fetch(filterUrl, {
+                headers: {
+                  Authorization: `Bearer ${AIRTABLE_TOKEN}`
                 }
-
-                const recordId = findData.records?.[0]?.id;
-
-                if (!recordId) {
-                    console.log(`⚠️ No match found for ID="${file.id}"`);
-                    skipped++;
-                    continue;
-                }
-
-                const patchRes = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${tableId}/${recordId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${AIRTABLE_TOKEN}`
-                    },
-                    body: JSON.stringify({
-                        fields: {
-                            'Media URLs': file.url
-                        }
-                    })
-                });
-
-                if (patchRes.ok) {
-                    console.log(`✅ Updated record ${recordId}`);
-                    updatedCount++;
-                } else {
-                    console.error(`❌ Failed to update record ${recordId}`);
-                    failed++;
-                }
-            } catch (err) {
-                console.error(`💥 Error processing file ID ${file.id}:`, err);
+              });
+          
+              const rawText = await findRes.text();
+              console.log(`🧪 Airtable API raw response:\n${rawText}`);
+          
+              let findData;
+              try {
+                findData = JSON.parse(rawText);
+              } catch (e) {
+                console.error("❌ Failed to parse Airtable JSON:", e.message);
                 failed++;
+                continue;
+              }
+          
+              if (!findData.records || findData.records.length === 0) {
+                console.log(`⚠️ No record found for ID="${file.id}"`);
+                skipped++;
+                continue;
+              }
+          
+              const recordId = findData.records[0].id;
+              console.log(`✅ Found record ID: ${recordId}`);
+          
+              const patchRes = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${tableId}/${recordId}`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${AIRTABLE_TOKEN}`
+                },
+                body: JSON.stringify({
+                  fields: {
+                    'Media URLs': file.url
+                  }
+                })
+              });
+          
+              if (patchRes.ok) {
+                console.log(`✅ Successfully updated Airtable record ${recordId}`);
+                updatedCount++;
+              } else {
+                const errText = await patchRes.text();
+                console.error(`❌ Failed to update Airtable record ${recordId}:\n${errText}`);
+                failed++;
+              }
+          
+            } catch (err) {
+              console.error(`💥 Unexpected error for file ID "${file.id}":`, err.message);
+              failed++;
             }
-        }
+          }
+          
 
         return res.status(200).json({
             success: true,
