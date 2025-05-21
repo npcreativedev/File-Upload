@@ -77,9 +77,12 @@ app.post('/update-airtable', async (req, res) => {
     } catch (err) {
       console.error('❌ General error during update:', err);
       return res.status(500).json({ error: 'Update failed.' });
+      
     }
   });
   
+  console.log('Airtable Find Response:', JSON.stringify(findData, null, 2));
+
 
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
