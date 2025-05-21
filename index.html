@@ -496,6 +496,9 @@
     }
 
     .copy-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
       margin-left: 12px;
       background: var(--primary);
       color: white;
@@ -573,6 +576,10 @@
         margin-left: 0;
         align-self: flex-end;
       }
+
+      .btn-group {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
@@ -582,7 +589,7 @@
     <div class="header">
       <h1>
         <i data-feather="upload-cloud"></i>
-        GetURL
+        FileURL
       </h1>
       <p>Upload your files and get secure, shareable links in seconds</p>
     </div>
@@ -629,7 +636,7 @@
 
         <button class="btn btn-secondary" id="sendToAirtableBtn" style="">
           <i data-feather="send"></i>
-          <span>Send to Airtable</span>
+          <span>Send to Calendar</span>
         </button>
       </div>
 
