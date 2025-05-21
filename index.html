@@ -666,6 +666,8 @@
       const CLOUD_NAME = 'dg26pbne1';
       const UPLOAD_PRESET = 'geturl_uploads';
 
+      let selectedFiles = [];
+
       const uploadArea = document.getElementById('uploadArea');
       const fileInput = document.getElementById('fileInput');
       const fileList = document.getElementById('fileList');
@@ -713,44 +715,51 @@
         const fileElement = document.createElement('div');
         fileElement.className = 'file-info';
         fileElement.innerHTML = `
-          <i data-feather="file"></i>
-          <div class="file-details">
-            <div class="file-name">${file.name}</div>
-            <div class="file-size">
-              <span>${formatFileSize(file.size)}</span>
-              ${file.type ? `<span>• ${capitalize(file.type.split('/')[0])}</span>` : ''}
-            </div>
-            <input type="text" class="file-id-input" placeholder="Add custom ID (optional)" maxlength="20">
-          </div>
-          <i class="remove-file" data-feather="x" data-index="${index}" title="Remove file"></i>
-        `;
+      <i data-feather="file"></i>
+      <div class="file-details">
+        <div class="file-name">${file.name}</div>
+        <div class="file-size">
+          <span>${formatFileSize(file.size)}</span>
+          ${file.type ? `<span>• ${capitalize(file.type.split('/')[0])}</span>` : ''}
+        </div>
+        <input type="text" class="file-id-input" placeholder="Add custom ID (optional)" maxlength="20">
+      </div>
+      <i class="remove-file" data-feather="x" data-index="${index}" title="Remove file"></i>
+    `;
         return fileElement;
       }
 
       function handleFiles(files) {
-        if (!files.length) {
+        selectedFiles = Array.from(files);
+        renderFileList();
+      }
+
+      function renderFileList() {
+        fileList.innerHTML = '';
+
+        if (!selectedFiles.length) {
           emptyState.style.display = 'block';
           uploadBtn.disabled = true;
           return;
         }
 
         emptyState.style.display = 'none';
-        fileList.innerHTML = '';
 
-        Array.from(files).forEach((file, index) => {
-          // Validate file size
-          if (file.size > 100 * 1024 * 1024) {
-            showError(`File "${file.name}" exceeds 100MB limit`, 'warning');
-            return;
-          }
-
+        selectedFiles.forEach((file, index) => {
           const fileElement = createFileInfoElement(file, index);
           fileList.appendChild(fileElement);
         });
 
+        updateFileInput();
         addRemoveListeners();
-        uploadBtn.disabled = !fileList.querySelector('.file-info');
+        uploadBtn.disabled = false;
         feather.replace();
+      }
+
+      function updateFileInput() {
+        const dt = new DataTransfer();
+        selectedFiles.forEach(file => dt.items.add(file));
+        fileInput.files = dt.files;
       }
 
       function addRemoveListeners() {
@@ -764,15 +773,8 @@
       }
 
       function removeFileAtIndex(index) {
-        const dt = new DataTransfer();
-        const files = Array.from(fileInput.files);
-
-        files.forEach((file, i) => {
-          if (i !== index) dt.items.add(file);
-        });
-
-        fileInput.files = dt.files;
-        handleFiles(fileInput.files);
+        selectedFiles.splice(index, 1);
+        renderFileList();
       }
 
       function formatFileSize(bytes) {
@@ -877,16 +879,16 @@
           resultItem.className = 'result-item';
 
           resultItem.innerHTML = `
-            <div style="margin-bottom: 8px; font-weight: 500;">${item.fileName}</div>
-            <a href="${item.directLink}" target="_blank" class="download-link">
-              <i data-feather="link"></i>
-              <span class="link-text">${item.directLink}</span>
-              ${item.id ? `<span class="file-id-badge">${item.id}</span>` : ''}
-              <button class="copy-btn" data-link="${item.directLink}">
-                <i data-feather="copy"></i> Copy
-              </button>
-            </a>
-          `;
+        <div style="margin-bottom: 8px; font-weight: 500;">${item.fileName}</div>
+        <a href="${item.directLink}" target="_blank" class="download-link">
+          <i data-feather="link"></i>
+          <span class="link-text">${item.directLink}</span>
+          ${item.id ? `<span class="file-id-badge">${item.id}</span>` : ''}
+          <button class="copy-btn" data-link="${item.directLink}">
+            <i data-feather="copy"></i> Copy
+          </button>
+        </a>
+      `;
 
           resultItem.querySelector('.copy-btn').addEventListener('click', e => {
             e.preventDefault();
@@ -1003,11 +1005,11 @@
       // Add spin animation
       const style = document.createElement('style');
       style.innerHTML = `
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `;
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `;
       document.head.appendChild(style);
     });
   </script>
