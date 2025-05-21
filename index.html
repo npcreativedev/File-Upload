@@ -847,7 +847,8 @@
 
       console.log('Sending to Airtable:', { tableId, files });
 
-      fetch('https://file-upload-t71w.onrender.com/update-airtable', {
+      fetch('https://npcreatives.com/update-airtable.php', {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tableId, files })
