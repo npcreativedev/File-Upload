@@ -273,6 +273,21 @@
       width: 0;
       transition: width 0.3s ease;
       border-radius: 4px;
+      animation: progressAnim 2s ease-in-out infinite;
+    }
+
+    @keyframes progressAnim {
+      0% {
+        width: 0%;
+      }
+
+      50% {
+        width: 75%;
+      }
+
+      100% {
+        width: 100%;
+      }
     }
 
     .status {
@@ -335,6 +350,34 @@
       color: var(--success);
     }
 
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--dark);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      opacity: 0.95;
+      z-index: 9999;
+    }
+
+
+    .result-title i {
+      animation: bounce 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes bounce {
+      from {
+        transform: translateY(0);
+      }
+
+      to {
+        transform: translateY(-3px);
+      }
+    }
+
     .copy-all {
       background: var(--success-light);
       color: var(--success);
@@ -355,6 +398,21 @@
       color: white;
     }
 
+    select.file-id-input {
+      appearance: none;
+      background: #fff;
+      border: 1px solid var(--gray-light);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 14px;
+      margin-bottom: 16px;
+      width: 100%;
+      background-image: url("data:image/svg+xml,%3Csvg fill='none' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px;
+    }
+
     .result-list {
       display: flex;
       flex-direction: column;
@@ -367,6 +425,11 @@
       border-radius: 8px;
       padding: 16px;
       transition: var(--transition);
+    }
+
+    .file-info,
+    .result-item {
+      animation: fadeIn 0.4s ease;
     }
 
     .download-link {
@@ -831,7 +894,7 @@
       const tableId = document.getElementById('companySelect').value;
       const resultItems = document.querySelectorAll('.result-item');
       if (!tableId || !resultItems.length) {
-        alert('Select a company and upload files first.');
+        showToast('Select a company and upload files first.');
         return;
       }
 
@@ -841,7 +904,7 @@
       })).filter(f => f.id && f.url);
 
       if (!files.length) {
-        alert('No valid files with IDs found.');
+        showToast('No valid files with IDs found.');
         return;
       }
 
@@ -859,11 +922,11 @@
         })
         .then(text => {
           const data = text ? JSON.parse(text) : {};
-          alert(`Airtable updated: ${data.updated ?? 0} updated, ${data.skipped ?? 0} skipped, ${data.failed ?? 0} failed.`);
+          showToast(`Airtable updated: ${data.updated ?? 0} updated, ${data.skipped ?? 0} skipped, ${data.failed ?? 0} failed.`);
         })
         .catch(err => {
           console.error(err);
-          alert('Error updating Airtable. See console.');
+          showToast('Error updating Airtable. See console.');
         });
     });
 
