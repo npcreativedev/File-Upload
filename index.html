@@ -894,7 +894,7 @@
       const tableId = document.getElementById('companySelect').value;
       const resultItems = document.querySelectorAll('.result-item');
       if (!tableId || !resultItems.length) {
-        showToast('Select a company and upload files first.');
+        alert('Select a company and upload files first.');
         return;
       }
 
@@ -904,7 +904,7 @@
       })).filter(f => f.id && f.url);
 
       if (!files.length) {
-        showToast('No valid files with IDs found.');
+        alert('No valid files with IDs found.');
         return;
       }
 
@@ -922,11 +922,11 @@
         })
         .then(text => {
           const data = text ? JSON.parse(text) : {};
-          showToast(`Airtable updated: ${data.updated ?? 0} updated, ${data.skipped ?? 0} skipped, ${data.failed ?? 0} failed.`);
+          alert(`Airtable updated: ${data.updated ?? 0} updated, ${data.skipped ?? 0} skipped, ${data.failed ?? 0} failed.`);
         })
         .catch(err => {
           console.error(err);
-          showToast('Error updating Airtable. See console.');
+          alert('Error updating Airtable. See console.');
         });
     });
 
