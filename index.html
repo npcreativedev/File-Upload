@@ -759,6 +759,12 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <input type="text" class="file-id-input" placeholder="Add custom ID (optional)" maxlength="20">
         <textarea class="file-caption-input" placeholder="Add caption (optional)" rows="2" maxlength="300"></textarea>
+        <label style="margin-top: 6px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+  <input type="checkbox" class="file-complete-checkbox">
+  Mark as complete
+</label>
+
+        
 
       </div>
       <i class="remove-file" data-feather="x" data-index="${index}" title="Remove file"></i>
@@ -995,11 +1001,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const files = Array.from(resultItems).map(item => ({
-      id: item.querySelector('.file-id-badge')?.textContent?.trim(),
-      url: item.querySelector('.link-text')?.textContent?.trim(),
-      name: item.querySelector('div[style*="font-weight: 500;"]')?.textContent?.trim(),
-      caption: item.getAttribute('data-caption') || ''
-    })).filter(f => f.url);
+  id: item.querySelector('.file-id-badge')?.textContent?.trim(),
+  url: item.querySelector('.link-text')?.textContent?.trim(),
+  name: item.querySelector('div[style*="font-weight: 500;"]')?.textContent?.trim(),
+  caption: item.getAttribute('data-caption') || '',
+  complete: item.querySelector('.file-complete-checkbox')?.checked || false
+})).filter(f => f.url);
+
 
     if (!files.length) {
       showError('No valid files found', 'warning');
