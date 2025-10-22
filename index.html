@@ -905,42 +905,49 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showResult(response) {
-    progressContainer.style.display = 'none';
-    resultContainer.style.display = 'block';
-    status.innerHTML = `<i data-feather="check-circle"></i> ${response.length} file${response.length !== 1 ? 's' : ''} uploaded successfully!`;
-    status.className = 'status success';
-    uploadBtn.disabled = false;
-    uploadBtn.innerHTML = `<i data-feather="upload"></i> Upload Files`;
+  progressContainer.style.display = 'none';
+  resultContainer.style.display = 'block';
+  status.innerHTML = `<i data-feather="check-circle"></i> ${response.length} file${response.length !== 1 ? 's' : ''} uploaded successfully!`;
+  status.className = 'status success';
+  uploadBtn.disabled = false;
+  uploadBtn.innerHTML = `<i data-feather="upload"></i> Upload Files`;
 
-    resultList.innerHTML = '';
-    response.forEach(item => {
-      const resultItem = document.createElement('div');
-      resultItem.className = 'result-item';
-      resultItem.setAttribute('data-caption', item.caption || '');
+  resultList.innerHTML = '';
 
-      resultItem.innerHTML = `
-        <div style="margin-bottom: 8px; font-weight: 500;">${item.fileName}</div>
-        ${item.caption ? `<div style="font-size: 13px; color: var(--gray-dark); margin-bottom: 6px;">${item.caption}</div>` : ''}
-        <a href="${item.directLink}" target="_blank" class="download-link">
-          <i data-feather="link"></i>
-          <span class="link-text">${item.directLink}</span>
-          ${item.id ? `<span class="file-id-badge">${item.id}</span>` : ''}
-          <button class="copy-btn" data-link="${item.directLink}">
-            <i data-feather="copy"></i> Copy
-          </button>
-        </a>
-      `;
+  response.forEach(item => {
+    const resultItem = document.createElement('div');
+    resultItem.className = 'result-item';
+    resultItem.setAttribute('data-caption', item.caption || '');
 
-      resultItem.querySelector('.copy-btn').addEventListener('click', e => {
-        e.preventDefault();
-        copyToClipboard(item.directLink, e.currentTarget);
-      });
+    resultItem.innerHTML = `
+      <div style="margin-bottom: 8px; font-weight: 500;">${item.fileName}</div>
+      ${item.caption ? `<div style="font-size: 13px; color: var(--gray-dark); margin-bottom: 6px;">${item.caption}</div>` : ''}
 
-      resultList.appendChild(resultItem);
+      <label style="margin-top: 6px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+        <input type="checkbox" class="file-complete-checkbox">
+        Mark as complete
+      </label>
+
+      <a href="${item.directLink}" target="_blank" class="download-link">
+        <i data-feather="link"></i>
+        <span class="link-text">${item.directLink}</span>
+        ${item.id ? `<span class="file-id-badge">${item.id}</span>` : ''}
+        <button class="copy-btn" data-link="${item.directLink}">
+          <i data-feather="copy"></i> Copy
+        </button>
+      </a>
+    `;
+
+    resultItem.querySelector('.copy-btn').addEventListener('click', e => {
+      e.preventDefault();
+      copyToClipboard(item.directLink, e.currentTarget);
     });
 
-    feather.replace();
-  }
+    resultList.appendChild(resultItem);
+  });
+
+  feather.replace();
+}
 
   function showError(message, type = 'error') {
     progressContainer.style.display = 'none';
