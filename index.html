@@ -923,10 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div style="margin-bottom: 8px; font-weight: 500;">${item.fileName}</div>
       ${item.caption ? `<div style="font-size: 13px; color: var(--gray-dark); margin-bottom: 6px;">${item.caption}</div>` : ''}
 
-      <label style="margin-top: 6px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-        <input type="checkbox" class="file-complete-checkbox">
-        Mark as complete
-      </label>
+      
 
       <a href="${item.directLink}" target="_blank" class="download-link">
         <i data-feather="link"></i>
