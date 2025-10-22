@@ -624,6 +624,7 @@
         <option value="">-- Select a company --</option>
         <option value="tbl0R7jlAectFyaky">OAF Construction</option>
         <option value="tbln7Xkos9dUVRhMt">Apex Contractors</option>
+        <option value="tbl1IH40XYNXP1gyx">Acada Learning</option>
         <option value="tbluTSYQZmWOmW3Tf">Alkebulan Design</option>
         <option value="tblrZsycQzOvex3oD">Ground Movers</option>
         <option value="tblgtbhyjL4YTs0FC">Apex Investments</option>
@@ -661,61 +662,58 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      feather.replace();
+document.addEventListener('DOMContentLoaded', () => {
+  feather.replace();
 
-      const CLOUD_NAME = 'dg26pbne1';
-      const UPLOAD_PRESET = 'geturl_uploads';
+  const CLOUD_NAME = 'dg26pbne1';
+  const UPLOAD_PRESET = 'geturl_uploads';
 
-      let selectedFiles = [];
+  let selectedFiles = [];
 
-      const uploadArea = document.getElementById('uploadArea');
-      const fileInput = document.getElementById('fileInput');
-      const fileList = document.getElementById('fileList');
-      const emptyState = document.getElementById('emptyState');
-      const uploadBtn = document.getElementById('uploadBtn');
-      const progressContainer = document.getElementById('progressContainer');
-      const progressBar = document.getElementById('progressBar');
-      const status = document.getElementById('status');
-      const resultContainer = document.getElementById('resultContainer');
-      const resultList = document.getElementById('resultList');
-      const copyAllBtn = document.getElementById('copyAllBtn');
-      const companySelect = document.getElementById('companySelect');
-      const sendToAirtableBtn = document.getElementById('sendToAirtableBtn');
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput = document.getElementById('fileInput');
+  const fileList = document.getElementById('fileList');
+  const emptyState = document.getElementById('emptyState');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const progressContainer = document.getElementById('progressContainer');
+  const progressBar = document.getElementById('progressBar');
+  const status = document.getElementById('status');
+  const resultContainer = document.getElementById('resultContainer');
+  const resultList = document.getElementById('resultList');
+  const copyAllBtn = document.getElementById('copyAllBtn');
+  const companySelect = document.getElementById('companySelect');
+  const sendToAirtableBtn = document.getElementById('sendToAirtableBtn');
 
-      emptyState.style.display = 'block';
+  emptyState.style.display = 'block';
 
-      // Add event listeners for drag and drop
-      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
-        uploadArea.addEventListener(event, e => {
-          e.preventDefault();
-          e.stopPropagation();
-        });
-      });
+  // --- Drag & Drop setup ---
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
+    uploadArea.addEventListener(event, e => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
 
-      ['dragenter', 'dragover'].forEach(event => {
-        uploadArea.addEventListener(event, () => uploadArea.classList.add('active'));
-      });
+  ['dragenter', 'dragover'].forEach(event => {
+    uploadArea.addEventListener(event, () => uploadArea.classList.add('active'));
+  });
 
-      ['dragleave', 'drop'].forEach(event => {
-        uploadArea.addEventListener(event, () => uploadArea.classList.remove('active'));
-      });
+  ['dragleave', 'drop'].forEach(event => {
+    uploadArea.addEventListener(event, () => uploadArea.classList.remove('active'));
+  });
 
-      uploadArea.addEventListener('click', () => fileInput.click());
+  uploadArea.addEventListener('click', () => fileInput.click());
+  uploadArea.addEventListener('drop', e => {
+    fileInput.files = e.dataTransfer.files;
+    handleFiles(fileInput.files);
+  });
+  fileInput.addEventListener('change', () => handleFiles(fileInput.files));
 
-      uploadArea.addEventListener('drop', e => {
-        fileInput.files = e.dataTransfer.files;
-        handleFiles(fileInput.files);
-      });
-
-      fileInput.addEventListener('change', () => {
-        handleFiles(fileInput.files);
-      });
-
-      function createFileInfoElement(file, index) {
-        const fileElement = document.createElement('div');
-        fileElement.className = 'file-info';
-        fileElement.innerHTML = `
+  // --- File handling ---
+  function createFileInfoElement(file, index) {
+    const fileElement = document.createElement('div');
+    fileElement.className = 'file-info';
+    fileElement.innerHTML = `
       <i data-feather="file"></i>
       <div class="file-details">
         <div class="file-name">${file.name}</div>
@@ -724,163 +722,161 @@
           ${file.type ? `<span>• ${capitalize(file.type.split('/')[0])}</span>` : ''}
         </div>
         <input type="text" class="file-id-input" placeholder="Add custom ID (optional)" maxlength="20">
+        <input type="text" class="file-caption-input" placeholder="Add caption (optional)" maxlength="120">
       </div>
       <i class="remove-file" data-feather="x" data-index="${index}" title="Remove file"></i>
     `;
-        return fileElement;
-      }
+    return fileElement;
+  }
 
-      function handleFiles(files) {
-        selectedFiles = Array.from(files);
-        renderFileList();
-      }
+  function handleFiles(files) {
+    selectedFiles = Array.from(files);
+    renderFileList();
+  }
 
-      function renderFileList() {
-        fileList.innerHTML = '';
+  function renderFileList() {
+    fileList.innerHTML = '';
+    if (!selectedFiles.length) {
+      emptyState.style.display = 'block';
+      uploadBtn.disabled = true;
+      return;
+    }
 
-        if (!selectedFiles.length) {
-          emptyState.style.display = 'block';
-          uploadBtn.disabled = true;
-          return;
-        }
+    emptyState.style.display = 'none';
+    selectedFiles.forEach((file, index) => {
+      const fileElement = createFileInfoElement(file, index);
+      fileList.appendChild(fileElement);
+    });
 
-        emptyState.style.display = 'none';
+    updateFileInput();
+    addRemoveListeners();
+    uploadBtn.disabled = false;
+    feather.replace();
+  }
 
-        selectedFiles.forEach((file, index) => {
-          const fileElement = createFileInfoElement(file, index);
-          fileList.appendChild(fileElement);
-        });
+  function updateFileInput() {
+    const dt = new DataTransfer();
+    selectedFiles.forEach(file => dt.items.add(file));
+    fileInput.files = dt.files;
+  }
 
-        updateFileInput();
-        addRemoveListeners();
-        uploadBtn.disabled = false;
-        feather.replace();
-      }
-
-      function updateFileInput() {
-        const dt = new DataTransfer();
-        selectedFiles.forEach(file => dt.items.add(file));
-        fileInput.files = dt.files;
-      }
-
-      function addRemoveListeners() {
-        fileList.querySelectorAll('.remove-file').forEach(removeBtn => {
-          removeBtn.addEventListener('click', e => {
-            e.stopPropagation();
-            const index = parseInt(removeBtn.getAttribute('data-index'));
-            removeFileAtIndex(index);
-          });
-        });
-      }
-
-      function removeFileAtIndex(index) {
-        selectedFiles.splice(index, 1);
-        renderFileList();
-      }
-
-      function formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-      }
-
-      function capitalize(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-      }
-
-      document.getElementById('uploadForm').addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const files = fileInput.files;
-        if (!files.length) return;
-
-        const fileElements = fileList.querySelectorAll('.file-info');
-        showUploadingState();
-
-        const uploadResults = [];
-        let uploadedCount = 0;
-
-        for (let idx = 0; idx < files.length; idx++) {
-          const file = files[idx];
-          const customId = fileElements[idx]?.querySelector('.file-id-input')?.value || '';
-
-          try {
-            const result = await uploadToCloudinary(file, customId);
-            uploadResults.push(result);
-            uploadedCount++;
-            updateProgress((uploadedCount / files.length) * 100);
-          } catch (error) {
-            showError(`Upload failed for ${file.name}: ${error.message}`);
-            return;
-          }
-        }
-
-        showResult(uploadResults);
+  function addRemoveListeners() {
+    fileList.querySelectorAll('.remove-file').forEach(removeBtn => {
+      removeBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const index = parseInt(removeBtn.getAttribute('data-index'));
+        removeFileAtIndex(index);
       });
+    });
+  }
 
-      async function uploadToCloudinary(file, customId) {
-        const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+  function removeFileAtIndex(index) {
+    selectedFiles.splice(index, 1);
+    renderFileList();
+  }
 
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', UPLOAD_PRESET);
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
 
-        const response = await fetch(url, {
-          method: 'POST',
-          body: formData
-        });
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Cloudinary upload failed');
-        }
+  // --- Upload Handling ---
+  document.getElementById('uploadForm').addEventListener('submit', async e => {
+    e.preventDefault();
 
-        const data = await response.json();
+    const files = fileInput.files;
+    if (!files.length) return;
 
-        return {
-          id: customId,
-          directLink: data.secure_url,
-          fileName: file.name
-        };
+    const fileElements = fileList.querySelectorAll('.file-info');
+    showUploadingState();
+
+    const uploadResults = [];
+    let uploadedCount = 0;
+
+    for (let idx = 0; idx < files.length; idx++) {
+      const file = files[idx];
+      const customId = fileElements[idx]?.querySelector('.file-id-input')?.value || '';
+      const caption = fileElements[idx]?.querySelector('.file-caption-input')?.value || '';
+
+      try {
+        const result = await uploadToCloudinary(file, customId, caption);
+        uploadResults.push(result);
+        uploadedCount++;
+        updateProgress((uploadedCount / files.length) * 100);
+      } catch (error) {
+        showError(`Upload failed for ${file.name}: ${error.message}`);
+        return;
       }
+    }
 
-      function showUploadingState() {
-        status.innerHTML = `<i data-feather="loader" class="spin"></i> Uploading files...`;
-        status.className = 'status';
-        resultList.innerHTML = '';
-        resultContainer.style.display = 'none';
-        progressBar.style.width = '0%';
-        progressContainer.style.display = 'block';
-        uploadBtn.disabled = true;
-        uploadBtn.innerHTML = `<i data-feather="loader" class="spin"></i> Uploading...`;
+    showResult(uploadResults);
+  });
 
-        const spinIcons = document.querySelectorAll('.spin');
-        spinIcons.forEach(icon => {
-          icon.style.animation = 'spin 1s linear infinite';
-        });
-      }
+  async function uploadToCloudinary(file, customId, caption) {
+    const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
 
-      function updateProgress(percent) {
-        progressBar.style.width = `${percent}%`;
-      }
+    const response = await fetch(url, { method: 'POST', body: formData });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Cloudinary upload failed');
+    }
 
-      function showResult(response) {
-        progressContainer.style.display = 'none';
-        resultContainer.style.display = 'block';
-        status.innerHTML = `<i data-feather="check-circle"></i> ${response.length} file${response.length !== 1 ? 's' : ''} uploaded successfully!`;
-        status.className = 'status success';
-        uploadBtn.disabled = false;
-        uploadBtn.innerHTML = `<i data-feather="upload"></i> Upload Files`;
+    const data = await response.json();
+    return {
+      id: customId,
+      caption: caption,
+      directLink: data.secure_url,
+      fileName: file.name
+    };
+  }
 
-        resultList.innerHTML = '';
-        response.forEach(item => {
-          const resultItem = document.createElement('div');
-          resultItem.className = 'result-item';
+  // --- UI Feedback ---
+  function showUploadingState() {
+    status.innerHTML = `<i data-feather="loader" class="spin"></i> Uploading files...`;
+    status.className = 'status';
+    resultList.innerHTML = '';
+    resultContainer.style.display = 'none';
+    progressBar.style.width = '0%';
+    progressContainer.style.display = 'block';
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = `<i data-feather="loader" class="spin"></i> Uploading...`;
 
-          resultItem.innerHTML = `
+    document.querySelectorAll('.spin').forEach(icon => {
+      icon.style.animation = 'spin 1s linear infinite';
+    });
+  }
+
+  function updateProgress(percent) {
+    progressBar.style.width = `${percent}%`;
+  }
+
+  function showResult(response) {
+    progressContainer.style.display = 'none';
+    resultContainer.style.display = 'block';
+    status.innerHTML = `<i data-feather="check-circle"></i> ${response.length} file${response.length !== 1 ? 's' : ''} uploaded successfully!`;
+    status.className = 'status success';
+    uploadBtn.disabled = false;
+    uploadBtn.innerHTML = `<i data-feather="upload"></i> Upload Files`;
+
+    resultList.innerHTML = '';
+    response.forEach(item => {
+      const resultItem = document.createElement('div');
+      resultItem.className = 'result-item';
+      resultItem.setAttribute('data-caption', item.caption || '');
+
+      resultItem.innerHTML = `
         <div style="margin-bottom: 8px; font-weight: 500;">${item.fileName}</div>
+        ${item.caption ? `<div style="font-size: 13px; color: var(--gray-dark); margin-bottom: 6px;">${item.caption}</div>` : ''}
         <a href="${item.directLink}" target="_blank" class="download-link">
           <i data-feather="link"></i>
           <span class="link-text">${item.directLink}</span>
@@ -891,129 +887,122 @@
         </a>
       `;
 
-          resultItem.querySelector('.copy-btn').addEventListener('click', e => {
-            e.preventDefault();
-            copyToClipboard(item.directLink, e.currentTarget);
-          });
-
-          resultList.appendChild(resultItem);
-        });
-
-        feather.replace();
-      }
-
-      function showError(message, type = 'error') {
-        progressContainer.style.display = 'none';
-        status.innerHTML = `<i data-feather="${type === 'warning' ? 'alert-triangle' : 'x-circle'}"></i> ${message}`;
-        status.className = `status ${type}`;
-        uploadBtn.disabled = false;
-        uploadBtn.innerHTML = `<i data-feather="upload"></i> Upload Files`;
-        feather.replace();
-      }
-
-      function copyToClipboard(text, btn = null) {
-        navigator.clipboard.writeText(text).then(() => {
-          if (btn) {
-            const icon = btn.querySelector('i');
-            const span = btn.querySelector('span') || btn;
-
-            // Change icon to checkmark temporarily
-            icon.setAttribute('data-feather', 'check');
-            feather.replace();
-
-            setTimeout(() => {
-              icon.setAttribute('data-feather', 'copy');
-              feather.replace();
-            }, 2000);
-          }
-        }).catch(err => {
-          console.error('Failed to copy', err);
-        });
-      }
-
-      copyAllBtn.addEventListener('click', e => {
+      resultItem.querySelector('.copy-btn').addEventListener('click', e => {
         e.preventDefault();
-        const links = Array.from(document.querySelectorAll('.link-text')).map(el => el.textContent).join('\n');
-        copyToClipboard(links);
+        copyToClipboard(item.directLink, e.currentTarget);
+      });
 
-        // Visual feedback
-        const icon = copyAllBtn.querySelector('i');
-        const span = copyAllBtn.querySelector('span');
+      resultList.appendChild(resultItem);
+    });
 
+    feather.replace();
+  }
+
+  function showError(message, type = 'error') {
+    progressContainer.style.display = 'none';
+    status.innerHTML = `<i data-feather="${type === 'warning' ? 'alert-triangle' : type === 'success' ? 'check-circle' : 'x-circle'}"></i> ${message}`;
+    status.className = `status ${type}`;
+    uploadBtn.disabled = false;
+    uploadBtn.innerHTML = `<i data-feather="upload"></i> Upload Files`;
+    feather.replace();
+  }
+
+  // --- Clipboard ---
+  function copyToClipboard(text, btn = null) {
+    navigator.clipboard.writeText(text).then(() => {
+      if (btn) {
+        const icon = btn.querySelector('i');
         icon.setAttribute('data-feather', 'check');
-        span.textContent = 'Copied!';
         feather.replace();
-
         setTimeout(() => {
           icon.setAttribute('data-feather', 'copy');
-          span.textContent = 'Copy All';
           feather.replace();
         }, 2000);
+      }
+    }).catch(err => console.error('Failed to copy', err));
+  }
+
+  copyAllBtn.addEventListener('click', e => {
+    e.preventDefault();
+    const links = Array.from(document.querySelectorAll('.link-text')).map(el => el.textContent).join('\n');
+    copyToClipboard(links);
+
+    const icon = copyAllBtn.querySelector('i');
+    const span = copyAllBtn.querySelector('span');
+    icon.setAttribute('data-feather', 'check');
+    span.textContent = 'Copied!';
+    feather.replace();
+
+    setTimeout(() => {
+      icon.setAttribute('data-feather', 'copy');
+      span.textContent = 'Copy All';
+      feather.replace();
+    }, 2000);
+  });
+
+  // --- Airtable ---
+  sendToAirtableBtn.addEventListener('click', async () => {
+    const tableId = companySelect.value;
+    const resultItems = document.querySelectorAll('.result-item');
+
+    if (!tableId) {
+      showError('Please select a company first', 'warning');
+      companySelect.focus();
+      return;
+    }
+
+    if (!resultItems.length) {
+      showError('Please upload files first', 'warning');
+      return;
+    }
+
+    const files = Array.from(resultItems).map(item => ({
+      id: item.querySelector('.file-id-badge')?.textContent?.trim(),
+      url: item.querySelector('.link-text')?.textContent?.trim(),
+      name: item.querySelector('div[style*="font-weight: 500;"]')?.textContent?.trim(),
+      caption: item.getAttribute('data-caption') || ''
+    })).filter(f => f.url);
+
+    if (!files.length) {
+      showError('No valid files found', 'warning');
+      return;
+    }
+
+    sendToAirtableBtn.disabled = true;
+    sendToAirtableBtn.innerHTML = `<i data-feather="loader" class="spin"></i> Sending...`;
+    sendToAirtableBtn.querySelector('.spin').style.animation = 'spin 1s linear infinite';
+
+    try {
+      const response = await fetch('https://npcreatives.com/update-airtable.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tableId, files })
       });
 
-      sendToAirtableBtn.addEventListener('click', async () => {
-        const tableId = companySelect.value;
-        const resultItems = document.querySelectorAll('.result-item');
+      if (!response.ok) throw new Error('Airtable update failed');
 
-        if (!tableId) {
-          showError('Please select a company first', 'warning');
-          companySelect.focus();
-          return;
-        }
+      const data = await response.json();
+      showError(`Sent to Calendar: ${data.updated ?? 0} updated, ${data.skipped ?? 0} skipped`, 'success');
+    } catch (err) {
+      console.error(err);
+      showError('Error updating Airtable. See console.', 'error');
+    } finally {
+      sendToAirtableBtn.disabled = false;
+      sendToAirtableBtn.innerHTML = `<i data-feather="send"></i> <span>Send to Calendar</span>`;
+    }
+  });
 
-        if (!resultItems.length) {
-          showError('Please upload files first', 'warning');
-          return;
-        }
-
-        const files = Array.from(resultItems).map(item => ({
-          id: item.querySelector('.file-id-badge')?.textContent?.trim(),
-          url: item.querySelector('.link-text')?.textContent?.trim(),
-          name: item.querySelector('div')?.textContent?.trim()
-        })).filter(f => f.url);
-
-        if (!files.length) {
-          showError('No valid files found', 'warning');
-          return;
-        }
-
-        // Show loading state
-        sendToAirtableBtn.disabled = true;
-        sendToAirtableBtn.innerHTML = `<i data-feather="loader" class="spin"></i> Sending...`;
-        const spinIcon = sendToAirtableBtn.querySelector('.spin');
-        spinIcon.style.animation = 'spin 1s linear infinite';
-
-        try {
-          const response = await fetch('https://npcreatives.com/update-airtable.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tableId, files })
-          });
-
-          if (!response.ok) throw new Error('Airtable update failed');
-
-          const data = await response.json();
-          showError(`Sent to Calendar: ${data.updated ?? 0} updated, ${data.skipped ?? 0} skipped`, 'success');
-        } catch (err) {
-          console.error(err);
-          showError('Error updating Airtable. See console.', 'error');
-        } finally {
-          sendToAirtableBtn.disabled = false;
-          sendToAirtableBtn.innerHTML = `<i data-feather="send"></i> <span>Send to Calendar</span>`;
-        }
-      });
-
-      // Add spin animation
-      const style = document.createElement('style');
-      style.innerHTML = `
+  // --- Spin animation ---
+  const style = document.createElement('style');
+  style.innerHTML = `
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
   `;
-      document.head.appendChild(style);
-    });
-  </script>
+  document.head.appendChild(style);
+});
+</script>
 
 </body>
 
