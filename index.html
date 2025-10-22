@@ -785,10 +785,11 @@ document.addEventListener('DOMContentLoaded', () => {
       fileList.appendChild(fileElement);
     });
 
+    feather.replace();
+
     updateFileInput();
     addRemoveListeners();
     uploadBtn.disabled = false;
-    feather.replace();
   }
 
   function updateFileInput() {
