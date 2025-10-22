@@ -148,6 +148,42 @@
       border-radius: 10px;
     }
 
+    /* 🔹 Styling for the optional caption input under each file */
+.file-caption-input {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1px solid var(--gray-light, #ddd);
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: #fff;
+  color: #333;
+}
+
+.file-caption-input::placeholder {
+  color: #999;
+}
+
+.file-caption-input:focus {
+  border-color: var(--accent, #007bff);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+/* Tightens the spacing between custom ID and caption inputs */
+.file-id-input + .file-caption-input {
+  margin-top: 5px;
+}
+
+/* Optional: make it look consistent when stacked with file details */
+.file-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+
     .file-info {
       display: flex;
       align-items: center;
@@ -722,7 +758,8 @@ document.addEventListener('DOMContentLoaded', () => {
           ${file.type ? `<span>• ${capitalize(file.type.split('/')[0])}</span>` : ''}
         </div>
         <input type="text" class="file-id-input" placeholder="Add custom ID (optional)" maxlength="20">
-        <input type="text" class="file-caption-input" placeholder="Add caption (optional)" maxlength="120">
+        <textarea class="file-caption-input" placeholder="Add caption (optional)" rows="2" maxlength="300"></textarea>
+
       </div>
       <i class="remove-file" data-feather="x" data-index="${index}" title="Remove file"></i>
     `;
